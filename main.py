@@ -12,6 +12,9 @@ validation = pd.read_csv('test.csv')
 drop = ['Survived', 'Cabin', 'Embarked', 'Name',
         'Ticket', 'Fare', 'Cabin']
 
+drop_sex = ['Survived', 'Cabin', 'Embarked', 'Name', 'Sex',
+        'Ticket', 'Fare', 'Cabin']
+
 drop_val = ['Cabin', 'Embarked', 'Name',
         'Ticket', 'Fare', 'Cabin']
 
@@ -40,33 +43,40 @@ def write_csv(result):
     pd.DataFrame(df).to_csv('Result.csv', header=['PassengerId', 'Survived'],
             index=None)
 
+def main_test(X, Y):
+    X = dt.create_sex_feature(X, 3)
+    X = dt.change_nan_class(X, Y)
+
+    train_length = int(line * 0.85)
+    test_length = line - train_length
+
+    X_train = X[:train_length]
+    Y_train = Y[:train_length]
+    X_test = X[train_length:]
+    Y_test = Y[train_length:]
+
+    rf = RandomForestClassifier(n_estimators=100)
+    rf.fit(X_train, Y_train)
+    pred = rf.predict(X_test)
+
+    a = 1
+    for i in range(0, test_length):
+        if (pred[i] == Y_test[np.shape(X_train)[0] + i]):
+            a += 1
+    print(a / test_length)
+
 def main(X, Y, X_val):
     X = dt.create_sex_feature(X, 3)
     X = dt.change_nan_class(X, Y)
     X_val = dt.create_sex_feature(X_val, 3)
     X_val = dt.change_nan(X_val)
 
-    train_length = int(line * 0.8)
-    test_length = line - train_length
-
-    #X_train = X[:train_length]
-    #Y_train = Y[:train_length]
-    #X_test = X[train_length:]
-    #Y_test = Y[train_length:]
-
     rf = RandomForestClassifier(n_estimators=100)
     rf.fit(X, Y)
-  #  rf.fit(X_train, Y_train)
-    #pred = rf.predict(X_test)
-
-    #a = 1
-    #for i in range(0, test_length):
-    #    if (pred[i] != Y_test[712 + i]):
-    #        a += 1
-    #print(a / test_length)
 
     result = rf.predict(X_val)
     write_csv(result)
 
 if __name__ == '__main__':
-   main(X, Y, X_val)
+   #main(X, Y, X_val)
+   main_test(X, Y)
