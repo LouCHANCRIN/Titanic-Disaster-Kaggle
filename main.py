@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import data_transformation as dt
 #import matplotlib.pyplot as plt
 import csv
 from sklearn.ensemble import RandomForestClassifier
@@ -8,40 +9,17 @@ from sklearn.ensemble import RandomForestClassifier
 data = pd.read_csv('train.csv')
 validation = pd.read_csv('test.csv')
 
-drop = ['Survived', 'Cabin', 'Embarked', 'Name', 'Sex',
+drop = ['Survived', 'Cabin', 'Embarked', 'Name',
         'Ticket', 'Fare', 'Cabin']
 
-drop_val = ['Cabin', 'Embarked', 'Name', 'Sex',
+drop_val = ['Cabin', 'Embarked', 'Name',
         'Ticket', 'Fare', 'Cabin']
 
 X = [np.insert(row, 0, 1) for row in data.drop(drop, axis=1).values]
 line, col = np.shape(X)
 X = np.reshape(X, (line, col))
 Y = data['Survived']
-
 X_val = [np.insert(row, 0, 1) for row in validation.drop(drop_val, axis=1).values]
-
-def moyenne(x, i):
-    som = 0
-    count = 0
-    line, col = np.shape(x)
-    for j in range(0, line):
-        if (x[j][i] == x[j][i]):
-            som += x[j][i]
-            count += 1
-    return (som / count)
-
-def change_nan(X):
-    a = 0
-    line, col = np.shape(X)
-    for i in range(0, col):
-        moy = moyenne(X, i)
-        for j in range(0, line):
-            a += 1
-            if (X[j][i] != X[j][i]):
-                X[j][i] = moy
-    X = np.reshape(X, (line, col))
-    return (X)
 
 def plot(X):
     for i in range(0, col):
@@ -63,8 +41,10 @@ def write_csv(result):
             index=None)
 
 def main(X, Y, X_val):
-    X = change_nan(X)
-    X_val = change_nan(X_val)
+    X = dt.create_sex_feature(X, 3)
+    X = dt.change_nan_class(X, Y)
+    X_val = dt.create_sex_feature(X_val, 3)
+    X_val = dt.change_nan(X_val)
 
     train_length = int(line * 0.8)
     test_length = line - train_length
