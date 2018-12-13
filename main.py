@@ -5,24 +5,8 @@ import data_transformation as dt
 import csv
 from sklearn.ensemble import RandomForestClassifier
 
-
 data = pd.read_csv('train.csv')
 validation = pd.read_csv('test.csv')
-
-drop = ['Survived', 'Cabin', 'Embarked', 'Name',
-        'Ticket', 'Fare', 'Cabin']
-
-drop_sex = ['Survived', 'Cabin', 'Embarked', 'Name', 'Sex',
-        'Ticket', 'Fare', 'Cabin']
-
-drop_val = ['Cabin', 'Embarked', 'Name',
-        'Ticket', 'Fare', 'Cabin']
-
-X = [np.insert(row, 0, 1) for row in data.drop(drop, axis=1).values]
-line, col = np.shape(X)
-X = np.reshape(X, (line, col))
-Y = data['Survived']
-X_val = [np.insert(row, 0, 1) for row in validation.drop(drop_val, axis=1).values]
 
 def plot(X):
     for i in range(0, col):
@@ -34,7 +18,7 @@ def plot(X):
         plt.hist(X[:,i])
         plt.show()
 
-def write_csv(result):
+def write_csv(result, line):
     Id = []
     for i in range(0, np.shape(X_val)[0]):
         Id.append(i + line + 1)
@@ -43,11 +27,35 @@ def write_csv(result):
     pd.DataFrame(df).to_csv('Result.csv', header=['PassengerId', 'Survived'],
             index=None)
 
-def main_test(X, Y):
-    X = dt.create_sex_feature(X, 3)
-    X = dt.change_nan_class(X, Y)
+def print_data(data, key):
+    S = []
+    D = []
+    YS = []
+    YD = []
+    for i in range(0, len(data[key])):
+        if (data['Survived'][i] == 1):
+            S.append(data[key][i])
+        else:
+            D.append(data[key][i])
+    plt.hist(S, alpha=0.5, label='Surived', color='r')
+    plt.hist(D, alpha=0.5, label='Died',color='b')
+    plt.xlabel(key)
+    plt.legend(['Survived', 'Died'])
+    plt.show()
 
-    train_length = int(line * 0.85)
+def main_test(X, Y, data):
+    line, col = np.shape(X)
+#    for j in range(0, col):
+#        print(X[0][j], j)
+    X = dt.create_sex_feature(X, 1)
+    X = dt.create_emb_feature(X, 6) 
+    X = dt.create_cabin_feature(X, 5)
+    X = dt.change_nan_class(X, Y)
+    X = dt.modify_pclass(X, 0)
+    X = dt.modify_parch(X, 4)
+    X = dt.modify_age(X, 2)
+
+    train_length = int(line * 0.80)
     test_length = line - train_length
 
     X_train = X[:train_length]
@@ -55,7 +63,7 @@ def main_test(X, Y):
     X_test = X[train_length:]
     Y_test = Y[train_length:]
 
-    rf = RandomForestClassifier(n_estimators=100)
+    rf = RandomForestClassifier(n_estimators=128)
     rf.fit(X_train, Y_train)
     pred = rf.predict(X_test)
 
@@ -66,17 +74,33 @@ def main_test(X, Y):
     print(a / test_length)
 
 def main(X, Y, X_val):
-    X = dt.create_sex_feature(X, 3)
+    X = dt.create_sex_feature(X, 1)
+    X = dt.create_emb_feature(X, 6) 
+    X = dt.create_cabin_feature(X, 5)
     X = dt.change_nan_class(X, Y)
-    X_val = dt.create_sex_feature(X_val, 3)
-    X_val = dt.change_nan(X_val)
+    X = dt.modify_pclass(X, 0)
+    X = dt.modify_parch(X, 4)
+    X = dt.modify_age(X, 2)
 
-    rf = RandomForestClassifier(n_estimators=100)
+    X_val = dt.create_sex_feature(X_val, 1)
+    X_val = dt.create_emb_feature(X_val, 6) 
+    X_val = dt.create_cabin_feature(X_val, 5)
+    X_val = dt.change_nan_class(X_val, Y)
+    X_val = dt.modify_pclass(X_val, 0)
+    X_val = dt.modify_parch(X_val, 4)
+    X_val = dt.modify_age(X_val, 2)
+
+    rf = RandomForestClassifier(n_estimators=1280)
     rf.fit(X, Y)
 
     result = rf.predict(X_val)
-    write_csv(result)
+    write_csv(result, np.shape(X)[0])
 
 if __name__ == '__main__':
-   #main(X, Y, X_val)
-   main_test(X, Y)
+    drop = ['Survived', 'Ticket', 'Name', 'PassengerId', 'Fare']
+    drop_val = ['Ticket', 'Name', 'PassengerId', 'Fare']
+    X = np.array(data.drop(drop, axis=1).values)
+    X_val = np.array(validation.drop(drop_val, axis=1).values)
+    Y = data['Survived']
+    main(X, Y, X_val)
+    #main_test(X, Y, data)
