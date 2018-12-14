@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import data_transformation as dt
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import csv
 from sklearn.ensemble import RandomForestClassifier
 
@@ -45,15 +45,16 @@ def print_data(data, key):
 
 def main_test(X, Y, data):
     line, col = np.shape(X)
-#    for j in range(0, col):
-#        print(X[0][j], j)
+    #for j in range(0, col):
+    #    print(X[0][j], j)
     X = dt.create_sex_feature(X, 1)
-    X = dt.create_emb_feature(X, 6) 
     X = dt.create_cabin_feature(X, 5)
+    X = dt.create_emb_feature(X, 6) 
     X = dt.change_nan_class(X, Y)
     X = dt.modify_pclass(X, 0)
-    X = dt.modify_parch(X, 4)
+    X = dt.modify_sibsp(X, 3)
     X = dt.modify_age(X, 2)
+    X = dt.modify_parch(X, 4)
 
     train_length = int(line * 0.80)
     test_length = line - train_length
@@ -75,20 +76,22 @@ def main_test(X, Y, data):
 
 def main(X, Y, X_val):
     X = dt.create_sex_feature(X, 1)
-    X = dt.create_emb_feature(X, 6) 
     X = dt.create_cabin_feature(X, 5)
+    X = dt.create_emb_feature(X, 6) 
     X = dt.change_nan_class(X, Y)
     X = dt.modify_pclass(X, 0)
-    X = dt.modify_parch(X, 4)
+    X = dt.modify_sibsp(X, 3)
     X = dt.modify_age(X, 2)
+    X = dt.modify_parch(X, 4)
 
     X_val = dt.create_sex_feature(X_val, 1)
-    X_val = dt.create_emb_feature(X_val, 6) 
     X_val = dt.create_cabin_feature(X_val, 5)
+    X_val = dt.create_emb_feature(X_val, 6) 
     X_val = dt.change_nan_class(X_val, Y)
     X_val = dt.modify_pclass(X_val, 0)
-    X_val = dt.modify_parch(X_val, 4)
     X_val = dt.modify_age(X_val, 2)
+    X_val = dt.modify_sibsp(X_val, 3)
+    X_val = dt.modify_parch(X_val, 4)
 
     rf = RandomForestClassifier(n_estimators=1280)
     rf.fit(X, Y)
@@ -99,6 +102,7 @@ def main(X, Y, X_val):
 if __name__ == '__main__':
     drop = ['Survived', 'Ticket', 'Name', 'PassengerId', 'Fare']
     drop_val = ['Ticket', 'Name', 'PassengerId', 'Fare']
+#    print_data(data, 'SibSp')
     X = np.array(data.drop(drop, axis=1).values)
     X_val = np.array(validation.drop(drop_val, axis=1).values)
     Y = data['Survived']
